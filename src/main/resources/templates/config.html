@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>配置入口</title>
+    <link rel="stylesheet" href="../static/layui/css/layui.css" media="all">
+    <script src="../static/layui/layui.js"></script>
+</head>
+<body>
+    <fieldset style="margin-top: 20px;width: 85%;margin-left: 20px;">
+        <legend style="text-align: center;font-size: large">版本号</legend>
+        <p>添加：</p>
+        <form class="layui-form">
+            <div class="layui-inline">
+                <label class="layui-form-label">版本号</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="version" id="versionId" class="layui-input">
+                </div>
+                <button class="layui-btn" lay-submit lay-filter="versionButton" style="margin-left: 50px" >添加</button>
+            </div>
+        </form><br/>
+    </fieldset>
+
+    <fieldset style="margin-top: 20px;width: 85%;margin-left: 20px">
+        <legend style="text-align: center;font-size: large">用户</legend>
+            <p>添加：</p>
+            <form class="layui-form">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">username</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="username" id="usernameId" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">nickname</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="nickname" id="nicknameId" class="layui-input">
+                    </div>
+                    <button class="layui-btn" lay-submit lay-filter="userAddButton" style="margin-left: 50px">添加</button>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">企业邮箱</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="email" id="emailId" lay-verify="email" class="layui-input">
+                    </div>
+                </div>
+            </form><br/><br/>
+            <p>删除：</p>
+            <form class="layui-form">
+                <div class="layui-inline">
+                    <label class="layui-form-label">用户id</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="id" id="delId" class="layui-input">
+                    </div>
+                    <button class="layui-btn" lay-submit lay-filter="userDelButton" style="margin-left: 50px">删除</button>
+                </div>
+            </form>
+        </fieldset>
+    </fieldset>
+
+    <!--版本号的添加-->
+    <script src="../static/js/jquery-3.4.1.min.js"></script>
+    <script>
+        layui.use('form',function () {
+            var form = layui.form;
+            form.on('submit(versionButton)',function (data){
+                console.log(data.field)
+                $.ajax({
+                    type: "post",
+                    url: "http://127.0.0.1:8080/version/addVersion",
+                    data: data.field,
+                    dataType: "JSON",
+                    success: function (data) {
+                        if(data == true){
+                            alert("版本号添加成功");
+                            document.getElementById("versionId").value = ""
+                        }
+                    },
+                    error: function () {
+                        alert("异常！")
+                    }
+                });
+                return false;  //防止页面刷新
+            });
+        })
+    </script>
+
+    <!--用户的添加-->
+    <script>
+        layui.use('form',function () {
+            var form = layui.form;
+            form.on('submit(userAddButton)',function(data){
+                console.log(data.field)
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    data: data.field,
+                    url: "http://127.0.0.1:8080/user/addUser",
+                    success: function (data) {
+                        if(data == true){
+                            alert("用户添加成功");
+                            document.getElementById("usernameId").value = "";
+                            document.getElementById("usernameId").value = "";
+                            document.getElementById("emailId").value = "";
+                        }
+                    },
+                    error: function () {
+                        alert("异常！")
+                    }
+                });
+                return false;
+            });
+        })
+    </script>
+
+    <!--用户的删除-->
+    <script>
+        layui.use('form',function (){
+            var form = layui.form;
+            form.on('submit(userDelButton)',function (data) {
+                console.log(data.field)
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    data: data.field,
+                    url: "http://127.0.0.1:8080/user/delUser",
+                    success: function (data) {
+                        if(data == true){
+                            alert("用户删除成功");
+                            document.getElementById("delId").value = "";
+                        }
+                    },
+                    error: function () {
+                            alert("异常！")
+                    }
+                });
+                return false;
+            });
+        })
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>相册生成页</title>
+		<meta name="renderer" content="webkit">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+		<link rel="stylesheet" href="../static/layui/css/layui.css"  media="all">
+		<script src="../static/layui/layui.js" charset="utf-8"></script>
+	</head>
+	<body>
+		<div class="layui-upload" style="text-align: center;margin-top: 5px;height: 400px" >
+			<button type="button" class="layui-btn" id="test1">上传图片</button>
+			<div class="layui-upload-list">
+				<img class="layui-upload-img" id="demo1" width="50%">
+				<p id="demoText"></p>
+			</div>
+		</div>
+
+		<div class="layui-form-item" style="text-align: center">
+			<div class="layui-inline">
+				<label class="layui-form-label">宽：</label>
+				<div class="layui-input-inline" style="width: 100px;">
+					<input type="text" name="price_min" placeholder="单行输入" class="layui-input">
+				</div>
+
+				<div class="layui-form-mid" style="margin-left: 50px">高：</div>
+				<div class="layui-input-inline" style="width: 100px;">
+					<input type="text" name="price_max" placeholder="单行输入" class="layui-input">
+				</div>
+				<div class="layui-inline" style="margin-left: 50px">
+					<button type="button" class="layui-btn layui-btn-sm" onclick="doit()">确认裁剪</button>
+				</div>
+			</div>
+		</div>
+
+		<!--图片上传-->
+		<script>
+			layui.use('upload', function() {
+				var $ = layui.jquery
+						, upload = layui.upload;
+
+				var uploadInst = upload.render({
+					elem: '#test1'
+					, url: ''
+					, before: function (obj) {
+						//预读本地文件
+						obj.preview(function (index, file, result) {
+							$('#demo1').attr('src', result); //图片链接
+						});
+					}
+					, done: function (res) {
+						//如果上传失败
+						if (res.code > 0) {
+							return layer.msg('上传失败');
+						}
+						//上传成功
+					}
+					, error: function () {
+						//失败状态，实现重传
+						var demoText = $('#demoText');
+						demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs demo-reload">重试</a>');
+						demoText.find('.demo-reload').on('click', function () {
+							uploadInst.upload();
+						});
+					}
+				});
+			});
+		</script>
+
+		<script>
+            function doit(){
+                var imgSrc= $("#demo1").attr("src");
+
+                if(imgSrc.indexOf("?")!=-1)imgSrc = imgSrc.substring(0,imgSrc.indexOf("?"))
+                var oldSuf = imgSrc.substring(imgSrc.lastIndexOf(".")+1);
+                var fileName = window.filename.substring(0,window.filename.lastIndexOf("."));
+                var src = imgSrc+"?imageView2/"+$("#dbs").val();
+                if(wh.value!=0){
+                    src+=wh.value;
+                }
+                if(ys.value!=0){
+                    src+=ys.value;
+                }
+                if(fm.value!=0){
+                    src+="/format/"+fm.value;
+                    //var downlinkStr = src.replace(oldSuf,fm.value);
+
+                    $("#downlink").attr("href",src+"&attname="+fileName+"."+fm.value);
+                    $("#downlink").text( src.replace(oldSuf,fm.value));
+                    //	src = src.replace(oldSuf,fm.value);
+                }
+
+                $("#imgr").attr("src", src);
+
+            }
+		</script>
+	</body>
+</html>

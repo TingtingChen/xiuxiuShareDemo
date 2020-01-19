@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>漏测数据生成页</title>
+	<meta name="renderer" content="webkit">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<link rel="stylesheet" href="../static/layui/css/layui.css" media="all">
+	<script src="../static/layui/layui.js"></script>
+	<script src="../static/js/xm-select.js" type="text/javascript" charset="utf-8"></script>
+	<script src="https://www.layuicdn.com/layui-v2.5.5/layui.all.js"></script>
+	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+	<script src="../static/js/jquery-3.4.1.min.js"></script>
+
+	<style type="text/css">
+		.layui-form-pane .layui-form-label{
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+	</style>
+</head>
+<body>
+
+<!--多选下拉框-->
+<form class="layui-form layui-form-pane xm-select-demo ly-label-center">
+	<div class="layui-form-item" pane width="50px">
+		<label class="layui-form-label">请选择版本号</label>
+		<div class="layui-input-block">
+			<!--版本号-->
+			<div id="versionData" class="xm-select-size"></div>
+			<pre id="versionData-value"></pre>
+			<script>
+				var versionData = xmSelect.render({
+					el: '#versionData',
+					size: 'small',
+					toolbar:{
+						show: true,
+					},
+					filterable: true,
+					width:'100px',
+					height: '500px',
+					autoRow: true,
+					language: 'zn',
+					data: [],
+				})
+
+				axios({
+					method: 'get',
+					url: 'http://127.0.0.1:8080/data/allVersion',
+				}).then(response => {
+					var res = response.data;
+
+					versionData.update({
+						data: res.data,
+						autoRow: true,
+					})
+				});
+			</script>
+		</div>
+	</div>
+</form>
+
+<div class="layui-inline">
+	<!--时间选择器-->
+	<div class="layui-inline">
+		<div class="layui-form">
+			<div class="layui-form-item">
+				<div class="layui-inline" id="time1">
+					<label class="layui-form-label" style="margin-left: 50px">起始时间</label>
+					<div class="layui-input-inline">
+						<input type="text" class="layui-input" id="test11" placeholder="请选择" style="position: absolute">
+					</div>
+				</div>
+				<div class="layui-inline">
+					<label class="layui-form-label">结束时间</label>
+					<div class="layui-input-inline">
+						<input type="text" class="layui-input" id="test12" placeholder="请选择" style="position: absolute">
+					</div>
+				</div>
+				<!--生成数据button-->
+				<button type="button" class="layui-btn layui-btn-radius layui-btn-normal" id="creatData" style="margin-left: 50px">生成数据</button>
+				<button type="button" class="layui-btn layui-btn-radius layui-btn-warm" style="margin-left: 50px" onclick="exportData()">导出数据</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!--加载时间选择器，获取起始时间与结束时间的值-->
+<script src="../static/layui/layui.js"></script>
+<script>
+	var startTime	//起始时间
+	var endTime	//结束时间
+
+	layui.use('laydate', function() {
+		var laydate = layui.laydate;
+		laydate.render({
+			elem: '#test11',
+			format: 'yyyy年MM月dd日',
+			trigger: 'click'
+			,done: function(value){
+				startTime = value;
+			}
+		});
+	});
+	layui.use('laydate', function() {
+		var laydate = layui.laydate;
+		laydate.render({
+			elem: '#test12',
+			format: 'yyyy年MM月dd日',
+			trigger: 'click'
+			,done: function(value){
+				endTime = value;
+			}
+		});
+	});
+</script>
+
+<!--点击生成数据按钮，获取多选下拉框与时间选择器的值-->
+<script>
+	document.getElementById("creatData").onclick = function () {
+		var data = {};
+		data.startTime = startTime;
+		data.endTime = endTime;
+		var arr = "";
+		version = versionData.getValue();
+		for(var j = 0; j < version.length; j++) {
+			arr += version[j].name+",";
+		}
+
+		data.versions = arr;
+		console.info(data);
+		$.ajax({
+			type: 'post',
+			url: 'http://127.0.0.1:8080/getversionAndDate',
+			data: data,
+			dataType: 'JSON',
+			success: function (data,status) {
+				alert(status);
+			}
+		})
+	}
+</script>
+
+
+<!--导出excel-->
+<script>
+	function exportData(){
+		window.location.href="http://127.0.0.1:8080/export";
+	}
+</script>
+
+
+<!--表格数据自动渲染-->
+<table id="demo" lay-filter="test" lay-size="sm"></table>
+<script>
+	layui.use(['table','layer'], function(){
+		var table = layui.table;
+		var layer = layui.layer;
+
+		var index = layer.load(0, {	//加载动画
+			shade: [0.5, 'gray'], //0.5透明度的灰色背景
+			//content: '加载中...',	//动画中添加文字
+			success: function (layero) {
+				layero.find('.layui-layer-content').css({
+					'padding-top': '39px',
+					'width': '60px'
+				});
+			}
+		});
+
+		//数据表格
+		table.render({
+			elem: '#demo'
+			,height: 400
+			//,loading: true //翻页加loading
+			,url: 'http://127.0.0.1:8080/showData' //数据接口
+			,toolbar: true		//导出数据
+			,title: '数据表'
+			,totalRow: true
+
+			,parseData: function(res){ //res 即为原始返回的数据
+				return {
+					"code":0,
+					"msg":"ok",
+					"count":1,
+					"data": res
+				};
+			}
+
+			//,page: true //开启分页
+			,cols: [[ //表头
+				{field: 'id', title: 'id', width:100, fixed: 'left'}
+				,{field: 'username', title: '名称', width:100, fixed: 'left'}
+				,{field: 'bug', title: '漏测bug数', width:100}
+				,{field: 'validBug', title: '有效bug总数', width:120}
+				// ,{field: 'adjust', title: '漏测数调整（历史+标签规范）', width:120}
+				,{field: 'totalLogged', title: '各模块总用时（单位:h）', width: 120}
+				,{field: 'forecastTime', title: '预估用时', width: 120}
+				// ,{field: 'missingRate', title: '漏测率（不包括历史）', width: 120}
+				,{field: 'historyMissingRate', title: '历史漏测数', width: 120}
+				// ,{field: 'effectiveRate', title: '有效bug率', width: 100}
+				// ,{field: 'timeRate', title: '用时率', width: 100}
+			]],
+			done:function (res) {   //返回数据执行回调函数
+				layer.close(index);    //返回数据关闭loading
+			}
+		});
+	});
+</script>
+
+</body>
+</html>
